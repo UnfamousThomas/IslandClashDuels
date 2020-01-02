@@ -10,7 +10,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 
 import java.util.UUID;
 
-public class onQuitListener implements Listener {
+public class PlayerQuitEventListener implements Listener {
 	private IslandClashDuels instance = IslandClashDuels.getInstance();
 	@EventHandler
 	public void onQuitEvent(PlayerQuitEvent event) {

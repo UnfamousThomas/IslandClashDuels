@@ -7,7 +7,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 
-public class onJoinListener implements Listener {
+public class PlayerJoinEventListener implements Listener {
 	private IslandClashDuels instance = IslandClashDuels.getInstance();
 	@EventHandler
 	public void onJoinEvent(PlayerJoinEvent event) {
