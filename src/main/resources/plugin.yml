@@ -1,0 +1,9 @@
+main: me.unfamousthomas.IslandClashDuels.IslandClashDuels
+name: IslandClashDuels
+version: 1.0.0
+author: UnfamousThomas
+description: A plugin!
+commands:
+  duel:
+    description: Duel someone - /duel player to send request, /duel to accept a request
+    usage: /duel (player)
