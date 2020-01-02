@@ -5,5 +5,5 @@ author: UnfamousThomas
 description: A plugin!
 commands:
   duel:
-    description: Duel someone - /duel player to send request, /duel to accept a request
+    description: Duel someone
     usage: /duel (player)
