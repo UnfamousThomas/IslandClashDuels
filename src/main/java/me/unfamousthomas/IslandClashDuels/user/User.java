@@ -1,6 +1,9 @@
 package me.unfamousthomas.IslandClashDuels.user;
 
+import me.unfamousthomas.IslandClashDuels.duels.RequestObject;
+
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
@@ -12,26 +15,26 @@ public class User {
 		this.IGN = IGN;
 		this.elo = elo;
 	}
-	private List<UUID> requestList = new ArrayList<>();
+	private HashMap<UUID, RequestObject> requestObject = new HashMap<>();
 	private UserState state;
 	private UUID uuid;
 	private String IGN;
 	private Integer elo;
 
-	public List<UUID> getRequestList() {
-		return requestList;
+	public HashMap<UUID, RequestObject> getRequestObject() {
+		return requestObject;
 	}
 
-	public void setRequestList(List<UUID> requestList) {
-		this.requestList = requestList;
+	public void setRequestObject(HashMap<UUID, RequestObject> requestObject) {
+		this.requestObject = requestObject;
 	}
 
-	public void addRequestList(UUID uuid) {
-		this.requestList.add(uuid);
+	public void addRequestObject(UUID uuid, RequestObject object) {
+		this.requestObject.put(uuid, object);
 	}
 
-	public void removeRequestList(UUID uuid) {
-		this.requestList.remove(uuid);
+	public void removeRequestObject(UUID uuid) {
+		this.requestObject.remove(uuid);
 	}
 
 	public Integer getElo() {

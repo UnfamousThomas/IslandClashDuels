@@ -1,6 +1,7 @@
 package me.unfamousthomas.IslandClashDuels.commands;
 
 import me.unfamousthomas.IslandClashDuels.IslandClashDuels;
+import me.unfamousthomas.IslandClashDuels.duels.RequestObject;
 import me.unfamousthomas.IslandClashDuels.user.User;
 import me.unfamousthomas.IslandClashDuels.user.UserManager;
 import me.unfamousthomas.IslandClashDuels.user.UserState;
@@ -14,85 +15,101 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
 
 public class DuelCommand implements CommandExecutor {
+
 	private IslandClashDuels islandClashDuels = IslandClashDuels.getInstance();
 	private UserManager userManager = islandClashDuels.getUserManager();
+
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String s, String[] args) {
-		if(sender instanceof Player) {
+		if (sender instanceof Player) {
 			Player player = (Player) sender;
-				if(args.length == 0) {
-					acceptRequest(player);
-				} else if(args.length == 1) {
-					String target = args[0];
-					sendRequest(player, target);
-				}
+			if (args.length == 0) {
+				acceptRequest(player);
+			} else if (args.length == 1) {
+				String target = args[0];
+				sendRequest(player, target);
 			}
+		}
 
 		return true;
 	}
 
-	private void acceptRequest(Player player) {
-		List<UUID> requestList = userManager.getUser(player.getUniqueId()).getRequestList();
-		if (userManager.getUser(player.getUniqueId()).getState() != UserState.IDLE) {
-			player.sendMessage((ChatColor.translateAlternateColorCodes('&', "You cannot accept duel requests right now!")));
+	private void sendRequest(Player player, String target) {
+		Player targetPlayer = Bukkit.getPlayer(target);
+		if (targetPlayer == null) {
+			player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cError finding player."));
 			return;
-		} else {
-			if (requestList.size() > 0) {
-				for (int i = 0; requestList.size() > i; i++) {
-					if (userManager.getUser(requestList.get(i)) != null && userManager.getUser(requestList.get(i)).getState() == UserState.IDLE) {
-						userManager.getUser(requestList.get(i)).setState(UserState.INGAME);
-						userManager.getUser(player.getUniqueId()).setState(UserState.INGAME);
-						Bukkit.getPlayer(requestList.get(i)).sendMessage(ChatColor.translateAlternateColorCodes('&', "&cDuel started!"));
-						player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cDuel started!"));
-						safeRandomTp(player, Bukkit.getPlayer(requestList.get(i)));
-						userManager.getDuelsHashMap().put(player.getUniqueId(),Bukkit.getPlayer(requestList.get(i)).getUniqueId());
-						userManager.getDuelsHashMap().put(Bukkit.getPlayer((requestList.get(i))).getUniqueId(), player.getUniqueId());
-						//Yes, ik - I should use a Request object here rather then Hashmap - But don't have that sort of free time
-						requestList.remove(i);
-						break;
-					} else {
-						player.sendMessage(ChatColor.translateAlternateColorCodes('&', "You do not have any valid duel requests."));
-
-					}
-					i++;
-				}
-				return;
-			} else {
-				player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&bNo requests were found."));
-				return;
-			}
 		}
+		UserState playerState = islandClashDuels.getUserManager().getUser(player.getUniqueId()).getState();
+		if (targetPlayer == player) {
+			player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cDont duel yourself. Dummy!"));
+			return;
+		}
+		if (playerState != UserState.IDLE) {
+			player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cError: either target or original user is not in IDLE state."));
+			return;
+		}
+		player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cSending request!"));
+
+		new BukkitRunnable() {
+			@Override
+			public void run() {
+				UserState targetState = islandClashDuels.getUserManager().getUser(targetPlayer.getUniqueId()).getState();
+
+				if (targetState != UserState.IDLE) {
+					player.sendMessage(ChatColor.translateAlternateColorCodes('&', "Error sending request: user is not idle!"));
+					return;
+				}
+
+				if (islandClashDuels.getUserManager().getUser(targetPlayer.getUniqueId()).getRequestObject().containsKey(player.getUniqueId())) {
+					player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cInvite already active."));
+					return;
+				}
+
+				player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&aSent!"));
+				targetPlayer.sendMessage(ChatColor.translateAlternateColorCodes('&', "&aReceived duel request from: " + player.getName()));
+
+				islandClashDuels.getUserManager().getUser(targetPlayer.getUniqueId()).addRequestObject(player.getUniqueId(), new RequestObject(targetPlayer.getUniqueId(), player.getUniqueId()));
+			}
+		}.runTaskLater(islandClashDuels, 20L);
 	}
 
-	private void sendRequest(Player player, String target) {
-		//Check if player is on the network
-		if (Bukkit.getServer().getPlayer(target) == null) {
-			player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cPlayer named " + target + " was not found."));
-		} else if(userManager.getUser(player.getUniqueId()).getState() != UserState.IDLE) {
-			player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cYou are in a duel. Cannot send the request."));
-		}
-			else {
-			player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cSending your request to: " + target));
-			UUID uuid = Bukkit.getServer().getPlayer(target).getUniqueId();
-			new BukkitRunnable() {
-				@Override
-				public void run() {
-					User targetUser = userManager.getUser(uuid);
-					if(targetUser.getState() != UserState.IDLE) {
-						player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cCould not send request, user is not in IDLE state"));
-					} else {
-						player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&aSent!"));
-						targetUser.addRequestList(player.getUniqueId());
-						Bukkit.getServer().getPlayer(target).sendMessage(ChatColor.translateAlternateColorCodes('&', "&cReceived duel request from: " + player.getName()));
-					}
-				}
-			}.runTaskLater(islandClashDuels, 20L);
+	private void acceptRequest(Player accepter) {
+		UserState accepterState = islandClashDuels.getUserManager().getUser(accepter.getUniqueId()).getState();
 
+		if(accepterState != UserState.IDLE) {
+			accepter.sendMessage(ChatColor.translateAlternateColorCodes('&',"&cYou cannot duel while not in a idle state!"));
+			return;
+		}
+		if(userManager.getUser(accepter.getUniqueId()).getRequestObject().isEmpty()) {
+			accepter.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cNo requests found."));
+			return;
+		}
+		int size = userManager.getUser(accepter.getUniqueId()).getRequestObject().size();
+		RequestObject lastValue = (RequestObject) userManager.getUser(accepter.getUniqueId()).getRequestObject().values().toArray()[size - 1];
+		for(Map.Entry<UUID, RequestObject> entry : userManager.getUser(accepter.getUniqueId()).getRequestObject().entrySet()) {
+			UUID key = entry.getKey();
+			RequestObject value = entry.getValue();
+			User user = islandClashDuels.getUserManager().getUser(key);
+			if(user == null && value == lastValue) {
+				value.accepted = true;
+				userManager.getUser(accepter.getUniqueId()).removeRequestObject(key);
+
+			} else if(user != null && user.getState() == UserState.IDLE) {
+				value.acceptRequest();
+				accepter.sendMessage(ChatColor.translateAlternateColorCodes('&',"&bAccepted duel request from: &4" + Bukkit.getPlayer(key).getName()));
+				userManager.getUser(accepter.getUniqueId()).setState(UserState.INGAME);
+				userManager.getUser(key).setState(UserState.INGAME);
+				userManager.getDuelsHashMap().put(key, accepter.getUniqueId());
+				userManager.getDuelsHashMap().put(accepter.getUniqueId(), key);
+				safeRandomTp(accepter, Bukkit.getPlayer(key));
+				break;
+			}
 		}
 	}
 
@@ -116,6 +133,6 @@ public class DuelCommand implements CommandExecutor {
 		double variance = poissonDistribution.getNumericalVariance();
 		long l = (new Double(variance)).longValue();
 		System.out.println(l);
-		 return l;
+		return l;
 	}
 }

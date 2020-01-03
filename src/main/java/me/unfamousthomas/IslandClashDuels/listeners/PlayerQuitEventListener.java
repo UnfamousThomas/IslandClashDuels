@@ -19,11 +19,11 @@ public class PlayerQuitEventListener implements Listener {
 
 			instance.getUserManager().getUser(uuid).setState(UserState.IDLE);
 			instance.getUserManager().getUser(uuid).setElo(instance.getUserManager().getUser(uuid).getElo() + 1);
-			instance.getServer().getPlayer(uuid).sendMessage("The other player quit, so you have won the duel. Switching back to IDLE state.");
+			instance.getServer().getPlayer(uuid).sendMessage(ChatColor.translateAlternateColorCodes('&',"&bThe other player quit, so you have won the duel. Switching back to IDLE state."));
 
 			User user = instance.getUserManager().getUser(event.getPlayer().getUniqueId());
 			String elo = ChatColor.translateAlternateColorCodes('&', "&b[" + user.getElo() + "] ");
-			//instance.getServer().getPlayer(uuid).setPlayerListName(elo + ChatColor.translateAlternateColorCodes('&', "&f" + event.getPlayer().getName()));
+			instance.getServer().getPlayer(uuid).setPlayerListName(elo + ChatColor.translateAlternateColorCodes('&', "&f" + event.getPlayer().getName()));
 
 
 			instance.getUserManager().getDuelsHashMap().remove(uuid);

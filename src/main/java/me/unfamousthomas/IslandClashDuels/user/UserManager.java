@@ -12,8 +12,7 @@ public class UserManager {
 	}
 
 	public void loadUser(UUID uuid, String IGN) {
-		//Load some data from DB - elo, rank etc & update last playtime
-
+		//In a real life situation you would load some data from DB - elo, rank etc & update last playtime
 		instance.userHashMap.put(uuid, new User(uuid, IGN, 0));
 	}
 
